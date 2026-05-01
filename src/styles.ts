@@ -41,6 +41,14 @@ export const cakeStyle = StyleSheet.create(
 )
 
 
+export const MainContainer = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});
+
+
+
 export const welcome_text = StyleSheet.create(
 
         {

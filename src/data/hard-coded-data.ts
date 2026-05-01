@@ -1,6 +1,6 @@
 import BirthdayData from "./BirthdayData";
 
-//Let's create a some birthdays.
+//Let's create  some birthdays.
 
 export const birthdays:BirthdayData[] = [
      new BirthdayData("Linda", 45, 100),

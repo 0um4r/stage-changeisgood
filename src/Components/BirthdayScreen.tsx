@@ -1,60 +1,49 @@
-//Le composant main qui gere l'etat
 
-import { useEffect, useState } from 'react';
-import BirthdayData from '../data/BirthdayData';
-import { fetchAllBirthdays } from '../Services/BirthdayService';
-import { ActivityIndicator, Button,Text,View } from 'react-native';
 import { cardStyles, container, welcome_text } from '../styles';
 import { CakeBoxComponent } from './CakeBoxComponent';
 import { HappyBirthdayComponent } from './HappyBirthdayComponent';
+import { useDispatch, useSelector } from 'react-redux';
+import { pickRandomBirthday, RESET } from '../store/BirthdaySlice';
+import { useState } from 'react';
+import { Button, Text, View } from 'react-native';
+import { SerializedBirthdayData } from '../miscellaneous/serializers';
 
 export default function BirthdayScreen() {
   
   //State
 
-  const [remaining, setRemaining]             = useState<BirthdayData[]>([]);
-  const [selected, setSelected]               = useState<BirthdayData[]>([]);
-  const [loading, setLoading]                 = useState<boolean>(true);
-  const [showMessage, setShowMessage]         = useState<boolean>(false);
-  const [currentBirthday, setCurrentBirthDay] = useState<BirthdayData>();
-  useEffect(() => {
-    const loadData = async () => {
-      const data = await fetchAllBirthdays();
-      setRemaining(data);
-      setLoading(false);
-    };
+  
+  const remaining:SerializedBirthdayData[] = useSelector((state: any) => state.birthdays.remaining);
+  const selected:SerializedBirthdayData[] = useSelector((state: any) => state.birthdays.selected);
+  const currentlySelected:SerializedBirthdayData | undefined = useSelector((state: any) => state.birthdays.currentlySelected);
+  const [showMessage, setShowMessage] = useState<boolean>(false);
 
-    loadData();
-  }, []);
+  
+  // Dispatcher
+  
 
-  if (loading) {
-    return <ActivityIndicator size="large" />;
-  }
+  const dispatch = useDispatch();
+
+
+  // /!\ Effects can still be shown but they are handled by Redux Thunk not useEffect. /!\ \\
+
+
 
   //Data handler
 
   const handleNext = () => {
-    let randomIndex: number = Math.floor(Math.random() * remaining.length);
-    let pickedBirthday = remaining[randomIndex];
-    setCurrentBirthDay(pickedBirthday);
-    setSelected(perv => [...perv, pickedBirthday]);
-    setRemaining(perv => perv.filter((_, index) => index !== randomIndex));
-  
-    setShowMessage(true);
-
-    //This is a timer that toggles off the messgag showing after a bit.
-
-    setTimeout(() => setShowMessage(false), 1500);
-  
+      dispatch(pickRandomBirthday());
+      setShowMessage(true);
+      setTimeout(() => {
+        setShowMessage(false);
+      }, 3000);
   };
 
 
   const handleReset = () => {
-    if (remaining.length === 0) {
-      setRemaining([...selected]);
-      setSelected([]);
+      dispatch(RESET());
     }
-  };
+  
 
 
   //UI 
@@ -63,7 +52,7 @@ export default function BirthdayScreen() {
    <View style={container.main}>
 
       
-      {showMessage && <HappyBirthdayComponent name={currentBirthday?.getName()}/>}
+      {showMessage && <HappyBirthdayComponent name={currentlySelected?.Name} />}
 
      <View style={welcome_text.box}>
         <Text style={welcome_text.text}>
@@ -81,8 +70,8 @@ export default function BirthdayScreen() {
 
      {selected.map((item, index) => (
        <View key={index} style={cardStyles.card}>
-         <Text style={cardStyles.name}>{item.getName()}</Text>
-         <Text>{item.getNextAge()} years old</Text>
+         <Text style={cardStyles.name}>{item.Name}</Text>
+         <Text>{item.Next_age} years old</Text>
        </View>
      ))}
 
@@ -90,6 +79,8 @@ export default function BirthdayScreen() {
      <Button title="Reset" onPress={handleReset} />}
    </View>
  );
+
 }
+
 
 
